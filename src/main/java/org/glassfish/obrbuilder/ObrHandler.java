@@ -123,7 +123,12 @@ class ObrHandler extends ServiceTracker {
         if (isDirectory(obrUri)) {
             setupRepository(new File(obrUri), isSynchronous());
         } else {
-            repositories.add(getRepositoryAdmin().getHelper().repository(obrUri.toURL()));
+        	//TangYong Modified
+        	//If not Directory, we still need to generate obr xml file and defaultly, generated
+        	//obr xml file name is obr.xml
+        	Repository repo = getRepositoryAdmin().getHelper().repository(obrUri.toURL());
+        	saveRepository(getRepositoryFile(null), repo);
+            repositories.add(repo);
         }
     }
 
@@ -193,6 +198,13 @@ class ObrHandler extends ServiceTracker {
         if (cacheDir == null) {
             return null; // caching is disabled, so don't do it.
         }
+        
+        //TangYong Added
+        //Defaultly, if not specifying repoDir, we will use obr.xml file
+        if (repoDir == null){
+        	return new File(cacheDir, "obr" + extn);
+        }
+        
         return new File(cacheDir, Constants.OBR_FILE_NAME_PREFIX + repoDir.getName() + extn);
     }
 

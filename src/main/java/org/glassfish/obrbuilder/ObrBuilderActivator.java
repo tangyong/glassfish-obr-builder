@@ -55,8 +55,21 @@ import static org.glassfish.obrbuilder.Logger.logger;
 public class ObrBuilderActivator implements BundleActivator {
 
     public void start(BundleContext context) throws Exception {
-    	String repositoryUris = context.getProperty(Constants.GF_MODULE_REPOSITORIES);
-        createGFObrRepository(repositoryUris, context);
+    	String gfRepositoryUris = context.getProperty(Constants.GF_MODULE_REPOSITORIES);
+        
+    	//TangYong Added: Test Scene1
+        //Converting Remote Maven Repo into OBR
+        String mavenRepoUri = "http://repo1.maven.org/maven2/org/apache/servicemix/bundles/org.apache.servicemix.bundles.ant/";
+        
+        //TangYong Added: Test Scene2
+        //Converting Remote Published Felix Obr Repo into OBR Repo
+        String felixRemoteRepoUri = "http://felix.apache.org/obr/releases.xml";
+        
+        //TangYong Added: Test Scene3
+        //Converting Local Existed Maven Repo into OBR Repo
+        String felixLocalRepoUri = "file:/D:/20130125/releases.xml";
+        
+        createGFObrRepository(gfRepositoryUris, context);
     }
 
 	public void stop(BundleContext context) throws Exception {    
@@ -66,14 +79,13 @@ public class ObrBuilderActivator implements BundleActivator {
 		if (repositoryUris != null) {
             for (String s : repositoryUris.split("\\s")) {
                 URI repoURI = URI.create(s);
-                File repoDir = new File(repoURI);
                 ObrHandler obrHandler = new ObrHandler(bctx);
                 try {
-					obrHandler.addRepository(repoDir.toURI());
+                	obrHandler.addRepository(repoURI);
 				} catch (Exception e) {
 					e.printStackTrace();
 					logger.logp(Level.SEVERE, "ObrBuilderActivator", "createGFObrRepository", 
-							"Creating Glassfish OBR Repository failed, RepoURI: {0}", new Object[]{repoDir.toURI()});
+							"Creating Glassfish OBR Repository failed, RepoURI: {0}", new Object[]{repoURI});
 				}
             }
         }
