@@ -42,9 +42,7 @@ Run Build:
      #TangYong Added Export-Service in oder to test Glassfish-Obr-Builder Module
      Export-Service: com.sun.enterprise.container.common.spi.JCDIService
 
-Then, re-building web-glue and weld-integration modules, and replacing glassfish3/glassfish/modules/web-glue.jar and weld-integration.jar
-
-with built web-glue.jar and weld-integration.jar.
+Then, re-building web-glue and weld-integration modules, and replacing glassfish3/glassfish/modules/web-glue.jar and weld-integration.jar with built web-glue.jar and weld-integration.jar.
 
 2) Putting glassfish-obr-builder.jar into modules/autostart
 
@@ -52,9 +50,7 @@ with built web-glue.jar and weld-integration.jar.
 
 4) Confirming obr-modules.xml
 
-Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see generated obr-modules.xml. Opening the obr xml file, you will
-
-see Import-Service and Export-Service related requires and capabilities from web-glue resouce and weld-integration resource.
+Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see generated obr-modules.xml. Opening the obr xml file, you will see Import-Service and Export-Service related requires and capabilities from web-glue resouce and weld-integration resource.
 
 ## New Implemented Features
 
