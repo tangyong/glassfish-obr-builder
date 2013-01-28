@@ -29,25 +29,18 @@ Run Build:
 
 1) Adding Import-Service and Export-Service into osgi.bundle
 
--eg. web-glue (main/appserver/web/web-glue) 
+-eg. web-glue (main/appserver/web/web-glue) 's osgi.bundle
 
-adding Import-Service into its osgi.bundle
-...
+     ...
+     Require-Bundle: org.glassfish.main.ejb.ejb-container, org.glassfish.main.web.ha
+     #TangYong Added Import-Service in oder to test Glassfish-Obr-Builder Module
+     Import-Service: org.glassfish.internal.data.ApplicationRegistry, com.sun.enterprise.container.common.spi.JCDIService
 
-Require-Bundle: org.glassfish.main.ejb.ejb-container, org.glassfish.main.web.ha
+-eg. weld-integration(main/appserver/web/weld-integration)'s osgi.bundle
 
-#TangYong Added Import-Service in oder to test Glassfish-Obr-Builder Module
-
-Import-Service: org.glassfish.internal.data.ApplicationRegistry, com.sun.enterprise.container.common.spi.JCDIService
-
--eg. weld-integration(main/appserver/web/weld-integration)
-
-adding Export-Service into its osgi.bundle
-...
-
-#TangYong Added Export-Service in oder to test Glassfish-Obr-Builder Module
-
-Export-Service: com.sun.enterprise.container.common.spi.JCDIService
+     ...
+     #TangYong Added Export-Service in oder to test Glassfish-Obr-Builder Module
+     Export-Service: com.sun.enterprise.container.common.spi.JCDIService
 
 Then, re-building web-glue and weld-integration modules, and replacing glassfish3/glassfish/modules/web-glue.jar and weld-integration.jar
 
