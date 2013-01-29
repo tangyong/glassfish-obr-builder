@@ -37,57 +37,30 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.obrbuilder;
 
-import java.io.File;
 import java.net.URI;
-import java.util.logging.Level;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-
-import static org.glassfish.obrbuilder.Logger.logger;
+import org.apache.felix.bundlerepository.RepositoryAdmin;
+import org.apache.felix.bundlerepository.Resource;
+import org.osgi.framework.Bundle;
 
 /**
+ * ObrHandlerService is an interface which defines core apis for,
+ * 1 creating OBR Repository
+ * 2 creating or populating OBR Resource
+ * 3 updating OBR Repository
+ * 4 removing existed OBR Repository
+ * 
  * @author TangYong(tangyong@cn.fujitsu.com)
  */
-public class ObrBuilderActivator implements BundleActivator {
+public interface ObrHandlerService {
 
-    public void start(BundleContext context) throws Exception {
-    	String gfRepositoryUris = context.getProperty(Constants.GF_MODULE_REPOSITORIES);
-        
-    	//TangYong Added: Test Scene1
-        //Converting Remote Maven Repo into OBR
-        String mavenRepoUri = "http://repo1.maven.org/maven2/org/apache/servicemix/bundles/org.apache.servicemix.bundles.ant/";
-        
-        //TangYong Added: Test Scene2
-        //Converting Remote Published Felix Obr Repo into OBR Repo
-        String felixRemoteRepoUri = "http://felix.apache.org/obr/releases.xml";
-        
-        //TangYong Added: Test Scene3
-        //Converting Local Existed Maven Repo into OBR Repo
-        String felixLocalRepoUri = "file:/D:/20130125/releases.xml";
-        
-        createGFObrRepository(gfRepositoryUris, context);
-    }
-
-	public void stop(BundleContext context) throws Exception {    
-    }
+	public RepositoryAdmin getRepositoryAdmin();
 	
-	private void createGFObrRepository(String repositoryUris, BundleContext bctx) {
-		if (repositoryUris != null) {
-            for (String s : repositoryUris.split("\\s")) {
-                URI repoURI = URI.create(s);
-                ObrHandlerService obrHandler = new ObrHandlerServiceImpl(bctx);
-                try {
-                	obrHandler.addRepository(repoURI);
-				} catch (Exception e) {
-					e.printStackTrace();
-					logger.logp(Level.SEVERE, "ObrBuilderActivator", "createGFObrRepository", 
-							"Creating Glassfish OBR Repository failed, RepoURI: {0}", new Object[]{repoURI});
-				}
-            }
-        }
-	}
+	public void addRepository(URI obrUri) throws Exception;
+	
+	public Bundle deploy(Resource resource);
+	
+	public Bundle deploy(String name, String version);
 }
