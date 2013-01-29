@@ -85,6 +85,9 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
         deployFragments = Boolean.valueOf(bctx.getProperty(Constants.OBR_DEPLOYS_FRGAMENTS));
         deployOptionalRequirements = Boolean.valueOf(bctx.getProperty(Constants.OBR_DEPLOYS_OPTIONAL_REQUIREMENTS));
         open();
+        
+        //Testing
+        System.out.println("Creating an ObrHandlerServiceImpl by a provisioning client::" + bctx.getBundle().getSymbolicName());
     }
 
     @Override

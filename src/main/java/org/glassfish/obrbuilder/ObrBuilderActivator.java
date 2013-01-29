@@ -75,7 +75,7 @@ public class ObrBuilderActivator implements BundleActivator {
         createGFObrRepository(gfRepositoryUris, context);
         
         //Register ObrHandlerServiceFactory into OSGi Registry
-        registration = context.registerService(ObrHandlerServiceFactory.class.getName(), new ObrHandlerServiceFactory(), null);
+        registration = context.registerService(ObrHandlerService.class.getName(), new ObrHandlerServiceFactory(), null);
     }
 
 	public void stop(BundleContext context) throws Exception {  
