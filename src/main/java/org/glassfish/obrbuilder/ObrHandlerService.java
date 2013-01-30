@@ -40,6 +40,7 @@
 package org.glassfish.obrbuilder;
 
 import java.net.URI;
+import java.util.List;
 
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resource;
@@ -51,6 +52,7 @@ import org.osgi.framework.Bundle;
  * 2 creating or populating OBR Resource
  * 3 updating OBR Repository
  * 4 removing existed OBR Repository
+ * 5 deploying subsystem
  * 
  * @author TangYong(tangyong@cn.fujitsu.com)
  */
@@ -63,4 +65,8 @@ public interface ObrHandlerService {
 	public Bundle deploy(Resource resource);
 	
 	public Bundle deploy(String name, String version);
+	
+	public void deploySubsystems(String subSystemPath);
+	
+	public void deploySubsystem(String subSystemPath, String subSystemName);
 }

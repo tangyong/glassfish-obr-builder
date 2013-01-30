@@ -60,6 +60,7 @@ import org.apache.felix.bundlerepository.Repository;
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resolver;
 import org.apache.felix.bundlerepository.Resource;
+import org.glassfish.obrbuilder.subsystem.SubsystemXmlReaderWriter;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
@@ -79,12 +80,16 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
     // We maintain our own repository list which we use during resolution process.
     // That way, we are not affected by any repository added by user to a shared instance of repository admin.
     private List<Repository> repositories = new ArrayList<Repository>();
+    
+    private SubsystemXmlReaderWriter subsystemParser = null;
 
     public ObrHandlerServiceImpl(BundleContext bctx) {
         super(bctx, RepositoryAdmin.class.getName(), null);
         deployFragments = Boolean.valueOf(bctx.getProperty(Constants.OBR_DEPLOYS_FRGAMENTS));
         deployOptionalRequirements = Boolean.valueOf(bctx.getProperty(Constants.OBR_DEPLOYS_OPTIONAL_REQUIREMENTS));
         open();
+        
+        subsystemParser = new SubsystemXmlReaderWriter();
         
         //Testing
         System.out.println("Creating an ObrHandlerServiceImpl by a provisioning client::" + bctx.getBundle().getSymbolicName());
@@ -466,4 +471,16 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
     private Repository[] getRepositories() {
         return repositories.toArray(new Repository[repositories.size()]);
     }
+
+	@Override
+	public void deploySubsystems(String subSystemPath) {
+		// TODO : tangyong
+		
+	}
+
+	@Override
+	public void deploySubsystem(String subSystemPath, String subSystemName) {
+		// TODO : tangyong
+		
+	}
 }
