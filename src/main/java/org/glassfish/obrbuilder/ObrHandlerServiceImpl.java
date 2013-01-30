@@ -60,7 +60,10 @@ import org.apache.felix.bundlerepository.Repository;
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resolver;
 import org.apache.felix.bundlerepository.Resource;
+import org.glassfish.obrbuilder.subsystem.Module;
+import org.glassfish.obrbuilder.subsystem.Subsystem;
 import org.glassfish.obrbuilder.subsystem.SubsystemXmlReaderWriter;
+import org.glassfish.obrbuilder.subsystem.Subsystems;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Filter;
@@ -196,6 +199,24 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 //        long t2 = System.currentTimeMillis();
 //        logger.logp(Level.INFO, "ObrHandler", "_setupRepository", "Thread #{0}: Adding repo took {1} ms",
 //                new Object[]{tid, t2 - t});
+    }
+    
+    //TangYong Added 
+    //Used for deploying subsystem
+    private File getSubSystemRepositoryFile(String repoName) {
+        String extn = ".xml";
+        String cacheDir = context.getProperty(Constants.HK2_CACHE_DIR);
+        if (cacheDir == null) {
+            return null; // caching is disabled, so don't do it.
+        }
+        
+        //TangYong Added
+        File repoFile = new File(cacheDir, repoName);
+        if (!repoFile.exists()) {
+        	repoFile.mkdirs();
+        }
+        
+        return new File(repoFile, Constants.OBR_FILE_NAME_PREFIX + repoName + extn);
     }
 
     private File getRepositoryFile(File repoDir) {
@@ -474,13 +495,87 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 
 	@Override
 	public void deploySubsystems(String subSystemPath) {
-		// TODO : tangyong
-		
+		deploySubsystem(subSystemPath, null);	
 	}
 
 	@Override
 	public void deploySubsystem(String subSystemPath, String subSystemName) {
-		// TODO : tangyong
+		//Currently, we only support local file system and in the future,
+		//We will support more options, eg. Maven Repo
+		File subSystemFile = new File(subSystemPath);
 		
+		if( !subSystemFile.exists() ){
+			logger.logp(Level.SEVERE, "ObrHandlerServiceImpl", "deploySubsystem",
+	                    "{0} is not exist, and please check your subsystem definition file!",
+	                    new Object[]{subSystemPath});
+			throw new RuntimeException(subSystemPath + " is not exist, and please check your subsystem definition file!"); 
+		}
+		
+		try {
+			Subsystems subsystems = subsystemParser.read(subSystemFile);
+			
+			//Firstly, we reload glassfish system obr called obr-modules.xml from "com.sun.enterprise.hk2.cacheDir"
+			String systemOBRPath = context.getProperty(Constants.HK2_CACHE_DIR);
+			File systemOBRFile = new File(systemOBRPath, Constants.GF_SYSTEM_OBR_NAME);
+			Repository systemRepo = loadRepository(systemOBRFile);
+			//We add system obr repo into repositories
+			repositories.add(systemRepo);
+			
+			//Secondly, we create user-defined obr defined subsystem definition file
+			//and we need to select right subsystem name passed by parameter
+			List<Subsystem> list = null;
+			if (subSystemName == null){
+				//get all subsystem from subsystem definition file
+				list = subsystems.getSubsystem();
+			}
+			else{
+				Subsystem subsystem = getSubsystem(subsystems, subSystemName);
+				if(subsystem == null){
+					logger.logp(Level.SEVERE, "ObrHandlerServiceImpl", "deploySubsystem",
+		                    "{0} is not exist, and please check your inputted subsystem name!",
+		                    new Object[]{subSystemName});
+				    throw new RuntimeException(subSystemName + " is not exist, and please check your inputted subsystem name!"); 
+				}
+				
+				list = new ArrayList<Subsystem>();
+				list.add(subsystem);
+			}
+			
+			for(Subsystem subsystem: list){
+				List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystem.getRepository();
+				for(org.glassfish.obrbuilder.subsystem.Repository repo: repos){
+					String repoName = repo.getName();
+					String repoPath = repo.getUri();
+					File repoFile = getSubSystemRepositoryFile(repoName);
+					Repository repository = createRepository(repoFile, new File(repoPath));
+					repositories.add(repository);
+				}
+				
+				//Thirdly, we get Modules defined subsystem definition file 
+				List<Module> modules = subsystem.getModule();
+				for(Module module: modules){
+					//In the future, we will consider module's version, currently, let it be null
+					Bundle bundle = deploy(module.getName(), null);
+					//Test
+					System.out.println("Deployed bundle's name is:: " + bundle.getBundleId() + " - " + bundle.getSymbolicName());
+				}	
+			}					
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}		
+	}
+	
+	private Subsystem getSubsystem(Subsystems subsystems, String subSystemName){
+		Subsystem result = null;
+		List<Subsystem> syslist = subsystems.getSubsystem();
+		for(Subsystem sys: syslist){
+			if (sys.getName().equalsIgnoreCase(subSystemName)){
+				result = sys;
+				break;
+			}
+		}
+		
+		return result;
 	}
 }

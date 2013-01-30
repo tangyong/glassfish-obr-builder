@@ -100,4 +100,9 @@ public final class Constants {
     static final String INHABITANTS_CACHE = "inhabitants";
     static final String HK2_CACHE_IO_BUFFER_SIZE = "com.sun.enterprise.hk2.cacheIoBufferSize";
     static final int DEFAULT_BUFFER_SIZE = 1024;
+    
+    /**
+     * Glassfish System OBR File Name.
+     */
+    static final String GF_SYSTEM_OBR_NAME = "obr-modules.xml";
 }
