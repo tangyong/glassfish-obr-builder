@@ -9,13 +9,29 @@ Its licensed under CDDL+GPL Licenses by Oracle Glassfish community.
 
 ## Design Documentation 
 
-Using Apache Felix Bundle Repository to generate obr xml file for glassfish modules
+1 Using Apache Felix Bundle Repository to generate obr xml file for glassfish modules
 
 * http://java.net/jira/browse/GLASSFISH-19395
+
+2 Defining a subsystem concept and using the glassfish-obr-builder to deploy a group of bundles and their dependencies
+
+3 Initial Provision Strategy
+
+1) Glassfish System OBR
+
+Repository---> glassfish3/glassfish/modules
+
+2) User-defined OBR
+
+Repository---> defined in subsystem xml file
+
+current provisioning way: local disk system, in the future, maven repo will be supported
 
 ## Building
 
 You'll need a machine with JDK 6 1.22 above + and Apache Maven 3 installed.
+
+1 glassfish-obr-builder module building
 
 Checkout:
 
@@ -24,8 +40,18 @@ Checkout:
 Run Build:
     
     mvn -DskipTests=true clean install
+    
+2 glassfish-provisioning-samples building
 
-## Testing/Using
+Checkout:
+
+    https://github.com/tangyong/glassfish-provisioning-samples.git
+
+Run Build:
+    
+    mvn -DskipTests=true clean install
+
+## GLASSFISH-19395 Testing
 
 1) Adding Import-Service and Export-Service into osgi.bundle
 
@@ -52,13 +78,53 @@ Then, re-building web-glue and weld-integration modules, and replacing glassfish
 
 Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see generated obr-modules.xml. Opening the obr xml file, you will see Import-Service and Export-Service related requires and capabilities from web-glue resouce and weld-integration resource.
 
-## New Implemented Features
+## Provisioning Subsystem Testing
 
+The following assumes you use a windows system. (Linux/Unix is similar)
 
-## Resolved Bugs
+1 Creating a subsystem client directory in your disk
 
+eg. in my env
+
+1) mkdir d:\provisioning-sample\
+
+2) put provisioning samples and client and subsystems.xml into  "d:\provisioning-sample\"
+
+d:\provisioning-sample\
+           Ñ•Ñüa_api.jar
+           Ñ•Ñüa_impl.jar
+           Ñ•Ñüb_api.jar
+           Ñ•Ñüb_impl.jar
+           Ñ•Ñüc_api.jar
+           Ñ•Ñüc_impl.jar
+           Ñ•Ñüsubsystems.xml
+           Ñ•Ñüprovisioning_client.jar
+
+The above bundles and subsystems.xml come from https://github.com/tangyong/glassfish-provisioning-samples.git.
+
+ÅöNoticeÅö: because the provisioning is only used for making experiment, so I hardcode subsystem client directory as "d:\provisioning-sample\" in provisioning_client project, if you want to use a different  directory, please modify https://github.com/tangyong/glassfish-provisioning-samples/blob/master/provisioning_client/src/main/java/org/glassfish/provisioning/sample/client/Activator.java, then re-building the client project.
+
+3) Putting glassfish-obr-builder.jar into glassfish modules/autostart
+
+4) Starting glassfish domain
+
+5) asadmin deploy --type=osgi d:\provisioning-sample\provisioning_client.jar
+
+6) asadmin osgi lb 
+
+Seeing whether these bundles have been deployed successfully.
+
+In addition, you can see user-defined obr file called "obr-provisioning-sample.xml" in glassfish3\glassfish\domains\domain1\osgi-cache\felix\provisioning-sample
+
+## Bugs List
 
 ## To Do List
+
+1 adding an api into ObrHandlerService to start the subsystem after installing
+
+2 adding an api into ObrHandlerService to undeploy the subsystem
+
+3 enhancing provision strategy
 
 ## Glassfish Team Leaders
 
