@@ -90,19 +90,20 @@ eg. in my env
 
 2) put provisioning samples and client and subsystems.xml into  "d:\provisioning-sample\"
 
-d:\provisioning-sample\
-           Ñ•Ñüa_api.jar
-           Ñ•Ñüa_impl.jar
-           Ñ•Ñüb_api.jar
-           Ñ•Ñüb_impl.jar
-           Ñ•Ñüc_api.jar
-           Ñ•Ñüc_impl.jar
-           Ñ•Ñüsubsystems.xml
-           Ñ•Ñüprovisioning_client.jar
+The following should be put into d:\provisioning-sample\
+
+-a_api.jar
+-a_impl.jar
+-b_api.jar
+-b_impl.jar
+-c_api.jar
+-c_impl.jar
+-subsystems.xml
+-provisioning_client.jar
 
 The above bundles and subsystems.xml come from https://github.com/tangyong/glassfish-provisioning-samples.git.
 
-ÅöNoticeÅö: because the provisioning is only used for making experiment, so I hardcode subsystem client directory as "d:\provisioning-sample\" in provisioning_client project, if you want to use a different  directory, please modify https://github.com/tangyong/glassfish-provisioning-samples/blob/master/provisioning_client/src/main/java/org/glassfish/provisioning/sample/client/Activator.java, then re-building the client project.
+Notice: because the provisioning is only used for making experiment, so I hardcode subsystem client directory as "d:\provisioning-sample\" in provisioning_client project, if you want to use a different  directory, please modify https://github.com/tangyong/glassfish-provisioning-samples/blob/master/provisioning_client/src/main/java/org/glassfish/provisioning/sample/client/Activator.java, then re-building the client project.
 
 3) Putting glassfish-obr-builder.jar into glassfish modules/autostart
 
