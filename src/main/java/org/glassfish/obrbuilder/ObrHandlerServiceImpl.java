@@ -81,7 +81,6 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService {
 
-	private boolean deployFragments = false;
 	private boolean deployOptionalRequirements = false;
 	// We maintain our own repository list which we use during resolution
 	// process.
@@ -93,8 +92,9 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 
 	public ObrHandlerServiceImpl(BundleContext bctx) {
 		super(bctx, RepositoryAdmin.class.getName(), null);
-		deployFragments = Boolean.valueOf(bctx
-				.getProperty(Constants.OBR_DEPLOYS_FRGAMENTS));
+
+		//Needing to discuss with sahoo
+		//seeing https://github.com/tangyong/glassfish-obr-builder/issues/16
 		deployOptionalRequirements = Boolean.valueOf(bctx
 				.getProperty(Constants.OBR_DEPLOYS_OPTIONAL_REQUIREMENTS));
 		open();
@@ -143,8 +143,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		} else {
 			// TangYong Modified
 			// If not Directory, we still need to generate obr xml file and
-			// defaultly, generated
-			// obr xml file name is obr.xml
+			// defaultly, generated obr xml file name is obr.xml
 			Repository repo = getRepositoryAdmin().getHelper().repository(
 					obrUri.toURL());
 			saveRepository(getRepositoryFile(null), repo);
@@ -411,35 +410,13 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		}
 	}
 
-	/* package */boolean resolve(final Resolver resolver, Resource resource) {
+	 private boolean resolve(final Resolver resolver, Resource resource) {
 		resolver.add(resource);
 		boolean resolved = resolver.resolve();
 		logger.logp(Level.INFO, "ObrHandlerServiceImpl", "resolve",
 				"At the end of first pass, resolver outcome is \n: {0}",
 				new Object[] { getResolverOutput(resolver) });
-		// The following code is not enough to deploy fragments, so it is
-		// commented out.
-		// if (resolved && deployFragments) {
-		// // Take a copy of required and optional resources before adding them
-		// to resolver, otherwise
-		// // resolver.getRequiredResources() or resolver.getOptionalResources()
-		// throws IllegalStateException
-		// // as its m_resolved flag changes to false when we add a resource to
-		// it.
-		// final Resource[] requiredResources = resolver.getRequiredResources();
-		// final Resource[] optionalResources = resolver.getOptionalResources();
-		//
-		// for (Resource r: requiredResources) {
-		// resolver.add(r);
-		// }
-		// for (Resource r: optionalResources) {
-		// resolver.add(r);
-		// }
-		// resolved = resolver.resolve();
-		// logger.logp(Level.INFO, "ObrHandler", "resolve",
-		// "At the end of second pass, resolver outcome is \n: {0}",
-		// new Object[]{getResolverOutput(resolver)});
-		// }
+		
 		return resolved;
 	}
 
@@ -530,12 +507,6 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		}
 
 		return matchList.toArray(new Resource[matchList.size()]);
-	}
-
-	private void printResolverOutput(Resolver resolver) {
-		StringBuffer sb = getResolverOutput(resolver);
-		logger.logp(Level.INFO, "ObrHandlerServiceImpl", "printResolverOutput",
-				"OBR resolver state: {0}", new Object[] { sb });
 	}
 
 	private StringBuffer getResolverOutput(Resolver resolver) {
