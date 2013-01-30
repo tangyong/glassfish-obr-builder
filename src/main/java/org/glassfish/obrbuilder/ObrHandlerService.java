@@ -68,5 +68,9 @@ public interface ObrHandlerService {
 	
 	public void deploySubsystems(String subSystemPath);
 	
+	public void deploySubsystems(String subSystemPath, boolean start);
+	
 	public void deploySubsystem(String subSystemPath, String subSystemName);
+	
+	public void deploySubsystem(String subSystemPath, String subSystemName, boolean start);
 }
