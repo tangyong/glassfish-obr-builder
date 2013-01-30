@@ -93,12 +93,19 @@ eg. in my env
 The following should be put into d:\provisioning-sample\
 
 -a_api.jar
+
 -a_impl.jar
+
 -b_api.jar
+
 -b_impl.jar
+
 -c_api.jar
+
 -c_impl.jar
+
 -subsystems.xml
+
 -provisioning_client.jar
 
 The above bundles and subsystems.xml come from https://github.com/tangyong/glassfish-provisioning-samples.git.
