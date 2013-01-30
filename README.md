@@ -120,19 +120,30 @@ Notice: because the provisioning is only used for making experiment, so I hardco
 
 6) asadmin osgi lb 
 
-Seeing whether these bundles have been deployed successfully.
+Seeing whether these bundles have been deployed successfully, and some bundles have been in active state, because defaultly we start some modules based on subsystem xml file. 
 
-In addition, you can see user-defined obr file called "obr-provisioning-sample.xml" in glassfish3\glassfish\domains\domain1\osgi-cache\felix\provisioning-sample
+In addition, in server.log, you can find the following contents:
+
+   [#|2013-01-30T22:37:35.218+0900|INFO|glassfish 4.0|javax.enterprise.logging.stdout|_ThreadID=83;_ThreadName=admin-listener(1);_TimeMillis=1359553055218;_LevelValue=800;|module name: sample.glassfish.provisioning.a_impl   module start level: 1|#]
+
+   [#|2013-01-30T22:37:35.218+0900|INFO|glassfish 4.0|javax.enterprise.logging.stdout|_ThreadID=83;_ThreadName=admin-listener(1);_TimeMillis=1359553055218;_LevelValue=800;|module name: sample.glassfish.provisioning.b_impl   module start level: 2|#]
+
+   [#|2013-01-30T22:37:35.218+0900|INFO|glassfish 4.0|javax.enterprise.logging.stdout|_ThreadID=83;_ThreadName=admin-listener(1);_TimeMillis=1359553055218;_LevelValue=800;|module name: sample.glassfish.provisioning.c_impl   module start level: 3|#]
+
+   [#|2013-01-30T22:37:35.250+0900|INFO|glassfish 4.0|javax.enterprise.logging.stdout|_ThreadID=83;_ThreadName=admin-listener(1);_TimeMillis=1359553055250;_LevelValue=800;|Hello A!AndHello B!AndHello B!|#]
+
+
+You can also see user-defined obr file called "obr-provisioning-sample.xml" in glassfish3\glassfish\domains\domain1\osgi-cache\felix\provisioning-sample .
+
+In addition, you can try to switch definition order of c_impl.jar and a_impl.jar in subsystems.xml, and no problem, deployment will be still normal.
 
 ## Bugs List
 
 ## To Do List
 
-1 adding an api into ObrHandlerService to start the subsystem after installing
+1 adding an api into ObrHandlerService to undeploy the subsystem
 
-2 adding an api into ObrHandlerService to undeploy the subsystem
-
-3 enhancing provision strategy
+2 enhancing provision strategy
 
 ## Glassfish Team Leaders
 
