@@ -15,6 +15,10 @@ Its licensed under CDDL+GPL Licenses by Oracle Glassfish community.
 
 2 Defining a subsystem concept and using the glassfish-obr-builder to deploy a group of bundles and their dependencies
 
+* http://java.net/jira/browse/GLASSFISH-19146
+
+* http://java.net/jira/browse/GLASSFISH-19400 (future plan)
+
 3 Initial Provision Strategy
 
 1) Glassfish System OBR
@@ -82,15 +86,13 @@ Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see gene
 
 The following assumes you use a windows system. (Linux/Unix is similar)
 
-1 Creating a subsystem client directory in your disk
+1 Creating a directory in your disk where you put provisioning sample bundles as following:
 
 eg. in my env
 
 1) mkdir d:\provisioning-sample\
 
-2) put provisioning samples and client and subsystems.xml into  "d:\provisioning-sample\"
-
-The following should be put into d:\provisioning-sample\
+2) putting provisioning sample bundles into the above created directory
 
 -a_api.jar
 
@@ -104,21 +106,21 @@ The following should be put into d:\provisioning-sample\
 
 -c_impl.jar
 
--subsystems.xml
+2 Putting the subsystems.xml into any place of your disk.
 
--provisioning_client.jar
+3 Editting the subsystems.xml and replacing the value of \<repository\> with right value based on 2.
 
-The above bundles and subsystems.xml come from https://github.com/tangyong/glassfish-provisioning-samples.git.
+4 Putting glassfish-obr-builder.jar into glassfish modules/autostart
 
-Notice: because the provisioning is only used for making experiment, so I hardcode subsystem client directory as "d:\provisioning-sample\" in provisioning_client project, if you want to use a different  directory, please modify https://github.com/tangyong/glassfish-provisioning-samples/blob/master/provisioning_client/src/main/java/org/glassfish/provisioning/sample/client/Activator.java, then re-building the client project.
+5 Starting glassfish domain
 
-3) Putting glassfish-obr-builder.jar into glassfish modules/autostart
+6 asadmin deploy --type=osgi provisioning_web_client.war
 
-4) Starting glassfish domain
+7 accessing "http://localhost:8080/subsystem/" and click "Deploying Subsystem" link
 
-5) asadmin deploy --type=osgi d:\provisioning-sample\provisioning_client.jar
+8 uploading your subsystems.xml and click "deploy" button
 
-6) asadmin osgi lb 
+9 asadmin osgi lb 
 
 Seeing whether these bundles have been deployed successfully, and some bundles have been in active state, because defaultly we start some modules based on subsystem xml file. 
 
@@ -137,13 +139,45 @@ You can also see user-defined obr file called "obr-provisioning-sample.xml" in g
 
 In addition, you can try to switch definition order of c_impl.jar and a_impl.jar in subsystems.xml, and no problem, deployment will be still normal.
 
+## New Features
+
+1 The feature of deploying subsystem can be used
+
+2 A new WAB based provisioning client can be used for deploying subsystem,  and is being enhanced
+
 ## Bugs List
+
+None.
+
+## Doing List
+
+1 adding some apis into ObrHandlerService to list the subsystem
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/24
+
+2 Improve provisioning client using WAB to meet some configurations and can execute different actions
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/19
+
+* https://github.com/tangyong/glassfish-provisioning-samples/issues/8
 
 ## To Do List
 
-1 adding an api into ObrHandlerService to undeploy the subsystem
+1 adding some apis into ObrHandlerService to undeploy the subsystem
 
-2 enhancing provision strategy
+* https://github.com/tangyong/glassfish-obr-builder/issues/17
+
+2 adding some apis into ObrHandlerService to update the subsystem
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/25
+
+3 combining subsystem deployment with asadmin deployment command
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/21
+
+4 enhancing provision strategy
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/8
 
 ## Glassfish Team Leaders
 
