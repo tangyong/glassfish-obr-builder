@@ -39,11 +39,12 @@
  */
 package org.glassfish.obrbuilder;
 
+import java.io.InputStream;
 import java.net.URI;
-import java.util.List;
 
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resource;
+import org.glassfish.obrbuilder.subsystem.Subsystems;
 import org.osgi.framework.Bundle;
 
 /**
@@ -73,4 +74,16 @@ public interface ObrHandlerService {
 	public void deploySubsystem(String subSystemPath, String subSystemName);
 	
 	public void deploySubsystem(String subSystemPath, String subSystemName, boolean start);
+	
+    public void deploySubsystems(InputStream is);
+	
+	public void deploySubsystems(InputStream is, boolean start);
+	
+	public void deploySubsystem(InputStream is, String subSystemName);
+	
+	public void deploySubsystem(InputStream is, String subSystemName, boolean start);
+	
+	//Testing API for a wab provisioning client
+	//In the future, the api will be removed
+	public Subsystems readSubsystem(InputStream is);
 }
