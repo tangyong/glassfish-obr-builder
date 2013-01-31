@@ -16,6 +16,7 @@ import javax.xml.bind.annotation.XmlValue;
  *   &lt;simpleContent>
  *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
  *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="version" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="start" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="startlevel" type="{http://www.w3.org/2001/XMLSchema}long" />
  *     &lt;/extension>
@@ -35,6 +36,8 @@ public class Module {
     protected String value;
     @XmlAttribute(name = "name", required = true)
     protected String name;
+    @XmlAttribute(name = "version")
+    protected String version;
     @XmlAttribute(name = "start")
     protected String start;
     @XmlAttribute(name = "startlevel")
@@ -86,6 +89,30 @@ public class Module {
      */
     public void setName(String value) {
         this.name = value;
+    }
+    
+    /**
+     * Gets the value of the version property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getVersion() {
+        return version;
+    }
+
+    /**
+     * Sets the value of the version property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setVersion(String value) {
+        this.version = value;
     }
 
     /**

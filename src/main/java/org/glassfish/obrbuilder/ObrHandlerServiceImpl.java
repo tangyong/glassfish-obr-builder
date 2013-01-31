@@ -630,9 +630,9 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				List<Module> modules = subsystem.getModule();
 				List<Bundle> bundles = new ArrayList<Bundle>();
 				for (Module module : modules) {
-					// In the future, we will consider module's version,
-					// currently, let it be null
-					Bundle bundle = deploy(module.getName(), null);
+					// fixing https://github.com/tangyong/glassfish-obr-builder/issues/20
+					// fixing author/date: tangyong/2013.01.30
+					Bundle bundle = deploy(module.getName(), module.getVersion());
 					bundles.add(bundle);
 					// Test
 					System.out.println("Deployed bundle's name is:: "
