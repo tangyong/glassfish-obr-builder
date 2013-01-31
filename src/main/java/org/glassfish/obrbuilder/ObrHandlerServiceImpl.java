@@ -630,14 +630,28 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				List<Module> modules = subsystem.getModule();
 				List<Bundle> bundles = new ArrayList<Bundle>();
 				for (Module module : modules) {
-					// fixing https://github.com/tangyong/glassfish-obr-builder/issues/20
-					// fixing author/date: tangyong/2013.01.30
+					//fixing https://github.com/tangyong/glassfish-obr-builder/issues/20
+					//author/date: tangyong/2013.01.30
 					Bundle bundle = deploy(module.getName(), module.getVersion());
+					
+					//fixing https://github.com/tangyong/glassfish-obr-builder/issues/22
+					//author/date: tangyong/2013.01.30
+					if (bundle == null){
+						//1) in server.log, output error info
+						//2) throw exception and breaking subsystem deploy
+						logger.logp(
+								Level.SEVERE,
+								"ObrHandlerServiceImpl",
+								"deploySubsystem",
+								"No module or bundle matching name = {0} and version = {1} ",
+								new Object[] { module.getName(), module.getVersion() });
+						throw new RuntimeException(
+								"Subsystem: " + subsystem.getName() + " deploying failed. " + 
+						        "No module or bundle matching name = " + module.getName() + " and version = "
+						        + module.getVersion());
+					}
+					
 					bundles.add(bundle);
-					// Test
-					System.out.println("Deployed bundle's name is:: "
-							+ bundle.getBundleId() + " - "
-							+ bundle.getSymbolicName());
 				}
 
 				// if start parameter is set true, we start the subsystem
@@ -651,7 +665,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new RuntimeException(e);
+			throw new RuntimeException(e.getMessage());
 		}
 	}
 
