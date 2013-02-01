@@ -118,7 +118,7 @@ eg. in my env
 
 7 accessing "http://localhost:8080/subsystem/" and click "Deploying Subsystem" link
 
-8 uploading your subsystems.xml and click "deploy" button
+8 uploading your subsystems.xml and click "deploy" button, then, you will see deployed subsystem detailed info from page.
 
 9 asadmin osgi lb 
 
@@ -135,15 +135,19 @@ In addition, in server.log, you can find the following contents:
    [#|2013-01-30T22:37:35.250+0900|INFO|glassfish 4.0|javax.enterprise.logging.stdout|_ThreadID=83;_ThreadName=admin-listener(1);_TimeMillis=1359553055250;_LevelValue=800;|Hello A!AndHello B!AndHello B!|#]
 
 
-You can also see user-defined obr file called "obr-provisioning-sample.xml" in glassfish3\glassfish\domains\domain1\osgi-cache\felix\provisioning-sample .
+You can also see user-defined obr file called "obr-provisioning-sample.xml" and subsystem xml file in glassfish3\glassfish\domains\domain1\osgi-cache\felix\bundle272(the bundle id maybe is different on your env)\data\subsystems\provisioning-samples
 
 In addition, you can try to switch definition order of c_impl.jar and a_impl.jar in subsystems.xml, and no problem, deployment will be still normal.
 
 ## New Features
 
-1 The feature of deploying subsystem can be used
+1 The feature of deploying subsystems can be used
 
-2 A new WAB based provisioning client can be used for deploying subsystem,  and is being enhanced
+2 A new WAB based provisioning client can be used for deploying subsystems,  and is being enhanced
+
+3 The feature of listing subsystems can be used
+
+4 Have implemented saving user-defined obr file and subsystem xml file into glassfish-obr-builder bundle storage area
 
 ## Bugs List
 
@@ -151,31 +155,31 @@ None.
 
 ## Doing List
 
-1 adding some apis into ObrHandlerService to list the subsystem
-
-* https://github.com/tangyong/glassfish-obr-builder/issues/24
-
-2 Improve provisioning client using WAB to meet some configurations and can execute different actions
+1 Improve provisioning client using WAB to meet some configurations and can execute different actions
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/19
 
 * https://github.com/tangyong/glassfish-provisioning-samples/issues/8
 
-## To Do List
-
-1 adding some apis into ObrHandlerService to undeploy the subsystem
+2 Supporting undeploying subsystems
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/17
 
-2 adding some apis into ObrHandlerService to update the subsystem
+3 Refactoring ObrHandlerServiceImpl class to make code more friendly
+
+https://github.com/tangyong/glassfish-obr-builder/issues/28
+
+## To Do List
+
+1 adding some apis into ObrHandlerService to update the subsystem
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/25
 
-3 combining subsystem deployment with asadmin deployment command
+2 combining subsystem deployment with asadmin deployment command
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/21
 
-4 enhancing provision strategy
+3 enhancing provision strategy
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/8
 
