@@ -2,36 +2,40 @@
   <xs:element name="subsystems">
     <xs:complexType>
       <xs:sequence>
+        <xs:element name="repository" maxOccurs="unbounded" minOccurs="0">
+          <xs:complexType>
+            <xs:simpleContent>
+              <xs:extension base="xs:string">
+                <xs:attribute type="xs:string" name="name" use="optional"/>
+                <xs:attribute type="xs:string" name="uri" use="optional"/>
+              </xs:extension>
+            </xs:simpleContent>
+          </xs:complexType>
+        </xs:element>
         <xs:element name="subsystem" maxOccurs="unbounded" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="repository" maxOccurs="unbounded" minOccurs="0">
-                <xs:complexType>
-                  <xs:simpleContent>
-                    <xs:extension base="xs:string">
-                      <xs:attribute type="xs:string" name="name" use="required"/>
-                      <xs:attribute type="xs:string" name="uri" use="optional"/>
-                    </xs:extension>
-                  </xs:simpleContent>
-                </xs:complexType>
-              </xs:element>
               <xs:element name="module" maxOccurs="unbounded" minOccurs="0">
                 <xs:complexType>
                   <xs:simpleContent>
                     <xs:extension base="xs:string">
-                      <xs:attribute type="xs:string" name="name" use="required"/>
+                      <xs:attribute type="xs:string" name="name" use="optional"/>
                       <xs:attribute type="xs:string" name="version" use="optional"/>
                       <xs:attribute type="xs:string" name="start" use="optional"/>
-                      <xs:attribute type="xs:long" name="startlevel" use="optional"/>
+                      <xs:attribute type="xs:string" name="description" use="optional"/>
+                      <xs:attribute type="xs:byte" name="startlevel" use="optional"/>
                     </xs:extension>
                   </xs:simpleContent>
                 </xs:complexType>
               </xs:element>
             </xs:sequence>
-            <xs:attribute type="xs:string" name="name" use="required"/>
+            <xs:attribute type="xs:string" name="name" use="optional"/>
+            <xs:attribute type="xs:string" name="description" use="optional"/>
           </xs:complexType>
         </xs:element>
       </xs:sequence>
+      <xs:attribute type="xs:string" name="name"/>
+      <xs:attribute type="xs:string" name="description"/>
     </xs:complexType>
   </xs:element>
 </xs:schema>
