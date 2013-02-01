@@ -42,15 +42,11 @@ package org.glassfish.obrbuilder;
 
 import static org.glassfish.obrbuilder.Logger.logger;
 
-import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,6 +73,7 @@ import org.glassfish.obrbuilder.subsystem.Subsystems;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleReference;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
@@ -98,12 +95,10 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 
 	private SubsystemXmlReaderWriter subsystemParser = null;
 	
-	private BundleContext bctx = null;
+	private Subsystems subsystems = null;
 
 	public ObrHandlerServiceImpl(BundleContext bctx) {
 		super(bctx, RepositoryAdmin.class.getName(), null);
-
-		this.bctx = bctx;
 		
 		// Needing to discuss with sahoo
 		// seeing https://github.com/tangyong/glassfish-obr-builder/issues/16
@@ -241,7 +236,11 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	private File getSubSystemRepositoryFile(String subsystemsName, String repoName) {
 		String extn = ".xml";
 		String prefix = "subsystems";
-		File bundleBaseStorage = bctx.getDataFile("");
+		
+		//obtaining obr-builder's bundle context
+		BundleContext ctx = getBundleContext(this.getClass());
+		
+		File bundleBaseStorage = ctx.getDataFile("");
 		
 		if ( !bundleBaseStorage.exists() ) {
 			return null; // caching is disabled, so don't do it.
@@ -618,7 +617,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		}
 
 		try {
-			Subsystems subsystems = subsystemParser.read(subSystemFile);
+			subsystems = subsystemParser.read(subSystemFile);
 
 			// Firstly, we reload glassfish system obr called obr-modules.xml
 			// from "com.sun.enterprise.hk2.cacheDir"
@@ -717,7 +716,9 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	private void saveSubsystemsDef(Subsystems subsystems) throws IOException {
 		String extn = ".xml";
 		String prefix = "subsystems";
-		File bundleBaseStorage = bctx.getDataFile("");
+		
+		BundleContext ctx = getBundleContext(this.getClass());
+		File bundleBaseStorage = ctx.getDataFile("");
 
 		File subsystemsBaseDir = new File(bundleBaseStorage, prefix);
 		if (!subsystemsBaseDir.exists()) {
@@ -854,7 +855,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 			boolean start) {
 
 		try {
-			Subsystems subsystems = subsystemParser.read(is);
+			subsystems = subsystemParser.read(is);
 
 			// Firstly, we reload glassfish system obr called obr-modules.xml
 			// from "com.sun.enterprise.hk2.cacheDir"
@@ -963,4 +964,105 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		}
 
 	}
+
+	@Override
+	public List<Subsystems> listSubsystems() throws IOException {
+		List<Subsystems> subsystems = new ArrayList<Subsystems>();
+		
+		String extn = ".xml";
+		String prefix = "subsystems";
+		BundleContext ctx = getBundleContext(this.getClass());
+		File bundleBaseStorage = ctx.getDataFile("");
+		
+		if ( !bundleBaseStorage.exists() ) {
+			return subsystems; // ToDo: needing to handle the case, and bundle has been breaked
+		}
+
+		File subsystemsBaseDir = new File(bundleBaseStorage, prefix);
+		if (!subsystemsBaseDir.exists()) {
+			return subsystems; // ToDo: needing to handle the case, and bundle has been breaked
+		}
+		
+		File[] files = subsystemsBaseDir.listFiles();
+		
+		for(int i = 0; i < files.length; i++){
+			File file = files[i];
+			
+			//find subsystems def file
+			File defBaseDir = new File(file, "def");
+			if (!defBaseDir.exists()) {
+				continue;
+			}
+
+			File defFile = new File(defBaseDir, "subsystems" + extn);
+			if (!defBaseDir.exists()) {
+				continue;
+			}
+			
+			subsystems.add(subsystemParser.read(defFile));
+		}
+		
+		return subsystems;
+	}
+
+	@Override
+	public Subsystems listSubsystems(String subSystemsName) throws IOException {
+		Subsystems subsystems = null;
+		
+		String extn = ".xml";
+		String prefix = "subsystems";
+		
+		BundleContext ctx = getBundleContext(this.getClass());
+		File bundleBaseStorage = ctx.getDataFile("");
+		
+		if ( !bundleBaseStorage.exists() ) {
+			return null; // ToDo: needing to handle the case, and bundle has been breaked
+		}
+
+		File subsystemsBaseDir = new File(bundleBaseStorage, prefix);
+		if (!subsystemsBaseDir.exists()) {
+			return null; // ToDo: needing to handle the case, and bundle has been breaked
+		}
+		
+		File[] files = subsystemsBaseDir.listFiles();
+		
+		for(int i = 0; i < files.length; i++){
+			File file = files[i];
+			
+			if (file.getName().equalsIgnoreCase(subSystemsName)){
+				//find the subsystems def file
+				File defBaseDir = new File(file, "def");
+				if (!defBaseDir.exists()) {
+					return null;
+				}
+
+				File defFile = new File(defBaseDir, "subsystems" + extn);
+				if (!defBaseDir.exists()) {
+					return null;
+				}
+				
+				subsystems = subsystemParser.read(defFile);
+			}
+		}
+		
+		return subsystems;
+	}
+
+	@Override
+	public Subsystems getCurrentSubsystems() {
+		return this.subsystems;
+	}
+	
+	public static BundleContext getBundleContext(Class<?> clazz) {
+        BundleContext bc = null;
+        try {
+            bc = BundleReference.class
+                            .cast(clazz.getClassLoader())
+                            .getBundle().getBundleContext();
+        } catch (ClassCastException cce) {
+            throw cce;
+        }
+        
+        return bc;
+    }
 }

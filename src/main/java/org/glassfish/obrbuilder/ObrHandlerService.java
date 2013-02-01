@@ -39,8 +39,10 @@
  */
 package org.glassfish.obrbuilder;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resource;
@@ -82,6 +84,12 @@ public interface ObrHandlerService {
 	public void deploySubsystem(InputStream is, String subSystemName);
 	
 	public void deploySubsystem(InputStream is, String subSystemName, boolean start);
+	
+	public Subsystems getCurrentSubsystems();
+	
+	public List<Subsystems> listSubsystems() throws IOException;
+	
+	public Subsystems listSubsystems(String subSystemsName) throws IOException;
 	
 	//Testing API for a wab provisioning client
 	//In the future, the api will be removed
