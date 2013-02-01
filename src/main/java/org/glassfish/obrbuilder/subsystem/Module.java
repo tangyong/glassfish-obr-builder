@@ -15,10 +15,11 @@ import javax.xml.bind.annotation.XmlValue;
  * &lt;complexType>
  *   &lt;simpleContent>
  *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
- *       &lt;attribute name="name" use="required" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="name" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="version" type="{http://www.w3.org/2001/XMLSchema}string" />
  *       &lt;attribute name="start" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="startlevel" type="{http://www.w3.org/2001/XMLSchema}long" />
+ *       &lt;attribute name="description" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       &lt;attribute name="startlevel" type="{http://www.w3.org/2001/XMLSchema}byte" />
  *     &lt;/extension>
  *   &lt;/simpleContent>
  * &lt;/complexType>
@@ -40,8 +41,10 @@ public class Module {
     protected String version;
     @XmlAttribute(name = "start")
     protected String start;
+    @XmlAttribute(name = "description")
+    protected String description;
     @XmlAttribute(name = "startlevel")
-    protected Long startlevel;
+    protected Byte startlevel;
 
     /**
      * Gets the value of the value property.
@@ -90,7 +93,7 @@ public class Module {
     public void setName(String value) {
         this.name = value;
     }
-    
+
     /**
      * Gets the value of the version property.
      * 
@@ -140,14 +143,38 @@ public class Module {
     }
 
     /**
+     * Gets the value of the description property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link String }
+     *     
+     */
+    public String getDescription() {
+        return description;
+    }
+
+    /**
+     * Sets the value of the description property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link String }
+     *     
+     */
+    public void setDescription(String value) {
+        this.description = value;
+    }
+
+    /**
      * Gets the value of the startlevel property.
      * 
      * @return
      *     possible object is
-     *     {@link Long }
+     *     {@link Byte }
      *     
      */
-    public Long getStartlevel() {
+    public Byte getStartlevel() {
         return startlevel;
     }
 
@@ -156,10 +183,10 @@ public class Module {
      * 
      * @param value
      *     allowed object is
-     *     {@link Long }
+     *     {@link Byte }
      *     
      */
-    public void setStartlevel(Long value) {
+    public void setStartlevel(Byte value) {
         this.startlevel = value;
     }
 }
