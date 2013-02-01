@@ -86,7 +86,7 @@ Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see gene
 
 The following assumes you use a windows system. (Linux/Unix is similar)
 
-1 Creating a directory in your disk where you put provisioning sample bundles as following:
+1 creating a directory in your disk where you put provisioning sample bundles as following:
 
 eg. in my env
 
@@ -106,13 +106,13 @@ eg. in my env
 
 -c_impl.jar
 
-2 Putting the subsystems.xml into any place of your disk.
+2 putting the subsystems.xml into any place of your disk.
 
-3 Editting the subsystems.xml and replacing the value of \<repository\> with right value based on 2.
+3 editting the subsystems.xml and replacing the value of \<repository\> with right value based on 2.
 
-4 Putting glassfish-obr-builder.jar into glassfish modules/autostart
+4 putting glassfish-obr-builder.jar into glassfish modules/autostart
 
-5 Starting glassfish domain
+5 starting glassfish domain
 
 6 asadmin deploy --type=osgi provisioning_web_client.war
 
@@ -120,7 +120,7 @@ eg. in my env
 
 8 uploading your subsystems.xml and click "deploy" button, then, you will see deployed subsystem detailed info from page.
 
-9 Backing to Subsystems Administration Page, and click "Listing Subsystems" link, then, selecting a subsystems from list box, clicking "display detailed info", and you will see detailed deployed subsystems info.
+9 backing to Subsystems Administration Page, and click "Listing Subsystems" link, then, selecting a subsystems from list box, clicking "display detailed info", and you will see detailed deployed subsystems info.
 
 10 asadmin osgi lb 
 
@@ -184,6 +184,10 @@ https://github.com/tangyong/glassfish-obr-builder/issues/28
 3 enhancing provision strategy
 
 * https://github.com/tangyong/glassfish-obr-builder/issues/8
+
+4 supporting target provisoning(eg. Cloud Provisioning, glassfish cluster remote provisioning...)
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/29
 
 ## Glassfish Team Leaders
 
