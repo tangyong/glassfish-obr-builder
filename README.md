@@ -120,7 +120,9 @@ eg. in my env
 
 8 uploading your subsystems.xml and click "deploy" button, then, you will see deployed subsystem detailed info from page.
 
-9 asadmin osgi lb 
+9 Backing to Subsystems Administration Page, and click "Listing Subsystems" link, then, selecting a subsystems from list box, clicking "display detailed info", and you will see detailed deployed subsystems info.
+
+10 asadmin osgi lb 
 
 Seeing whether these bundles have been deployed successfully, and some bundles have been in active state, because defaultly we start some modules based on subsystem xml file. 
 
