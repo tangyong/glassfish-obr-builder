@@ -42,18 +42,25 @@ package org.glassfish.obrbuilder;
 
 import static org.glassfish.obrbuilder.Logger.logger;
 
+import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
@@ -90,10 +97,14 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	private List<Repository> repositories = new ArrayList<Repository>();
 
 	private SubsystemXmlReaderWriter subsystemParser = null;
+	
+	private BundleContext bctx = null;
 
 	public ObrHandlerServiceImpl(BundleContext bctx) {
 		super(bctx, RepositoryAdmin.class.getName(), null);
 
+		this.bctx = bctx;
+		
 		// Needing to discuss with sahoo
 		// seeing https://github.com/tangyong/glassfish-obr-builder/issues/16
 		deployOptionalRequirements = Boolean.valueOf(bctx
@@ -224,22 +235,34 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		// new Object[]{tid, t2 - t});
 	}
 
-	// TangYong Added
-	// Used for deploying subsystem
-	private File getSubSystemRepositoryFile(String repoName) {
+	//Used for creating and saving repo files
+	//seeing https://github.com/tangyong/glassfish-obr-builder/issues/26
+	//author/date: tangyong/2013.2.1
+	private File getSubSystemRepositoryFile(String subsystemsName, String repoName) {
 		String extn = ".xml";
-		String cacheDir = context.getProperty(Constants.HK2_CACHE_DIR);
-		if (cacheDir == null) {
+		String prefix = "subsystems";
+		File bundleBaseStorage = bctx.getDataFile("");
+		
+		if ( !bundleBaseStorage.exists() ) {
 			return null; // caching is disabled, so don't do it.
 		}
 
-		// TangYong Added
-		File repoFile = new File(cacheDir, repoName);
-		if (!repoFile.exists()) {
-			repoFile.mkdirs();
+		File subsystemsBaseDir = new File(bundleBaseStorage, prefix);
+		if (!subsystemsBaseDir.exists()) {
+			subsystemsBaseDir.mkdirs();
+		}
+		
+		File subsystemsDir = new File(subsystemsBaseDir, subsystemsName);
+		if (!subsystemsDir.exists()) {
+			subsystemsDir.mkdirs();
+		}
+		
+		File repoBaseDir = new File(subsystemsDir, "repos");
+		if (!repoBaseDir.exists()) {
+			repoBaseDir.mkdirs();
 		}
 
-		return new File(repoFile, Constants.OBR_FILE_NAME_PREFIX + repoName
+		return new File(repoBaseDir, Constants.OBR_FILE_NAME_PREFIX + repoName
 				+ extn);
 	}
 
@@ -271,6 +294,21 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	 */
 	private Repository createRepository(File repoFile, File repoDir)
 			throws IOException {
+		return createRepository(repoFile, repoDir, true);
+	}
+	
+	//TangYong Added a overridden method to use for deploying subsystem
+	/**
+	 * Create a new Repository from a directory by recurssively traversing all
+	 * the jar files found there.
+	 * 
+	 * @param repoFile
+	 * @param repoDir
+	 * @return
+	 * @throws IOException
+	 */
+	private Repository createRepository(File repoFile, File repoDir, boolean save)
+			throws IOException {
 		DataModelHelper dmh = getRepositoryAdmin().getHelper();
 		List<Resource> resources = new ArrayList<Resource>();
 		for (File jar : findAllJars(repoDir)) {
@@ -289,7 +327,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		logger.logp(Level.INFO, "ObrHandlerServiceImpl", "createRepository",
 				"Created {0} containing {1} resources.", new Object[] {
 						repoFile, resources.size() });
-		if (repoFile != null) {
+		if (repoFile != null && save) {
 			saveRepository(repoFile, repository);
 		}
 		return repository;
@@ -615,19 +653,15 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				list = new ArrayList<Subsystem>();
 				list.add(subsystem);
 			}
-
+			
+			//creating user-defined obr defined subsystem definition file
+			//Notice: at the point, we should not save repo files into bundle storage area,
+			//and only if deploying the subsystems successfully, we save the repo files
+			List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystems
+					.getRepository();
+			Map<File, Repository> repoMap = createUserDefinedRepos(subsystems.getName(), repos);
+			
 			for (Subsystem subsystem : list) {
-				List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystem
-						.getRepository();
-				for (org.glassfish.obrbuilder.subsystem.Repository repo : repos) {
-					String repoName = repo.getName();
-					String repoPath = repo.getUri();
-					File repoFile = getSubSystemRepositoryFile(repoName);
-					Repository repository = createRepository(repoFile,
-							new File(repoPath));
-					repositories.add(repository);
-				}
-
 				// Thirdly, we get Modules defined subsystem definition file
 				List<Module> modules = subsystem.getModule();
 				List<Bundle> bundles = new ArrayList<Bundle>();
@@ -669,11 +703,66 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				if (start) {
 					startSubsystem(modules, bundles);
 				}
+				
+				//Save Subsystems repo files and definition file into glassfish-obr-builder's storage
+				saveSubsystemsRepos(repoMap);
+				saveSubsystemsDef(subsystems);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e.getMessage());
 		}
+	}
+
+	private void saveSubsystemsDef(Subsystems subsystems) throws IOException {
+		String extn = ".xml";
+		String prefix = "subsystems";
+		File bundleBaseStorage = bctx.getDataFile("");
+
+		File subsystemsBaseDir = new File(bundleBaseStorage, prefix);
+		if (!subsystemsBaseDir.exists()) {
+			subsystemsBaseDir.mkdirs();
+		}
+		
+		File subsystemsDir = new File(subsystemsBaseDir, subsystems.getName());
+		if (!subsystemsDir.exists()) {
+			subsystemsDir.mkdirs();
+		}
+		
+		File defBaseDir = new File(subsystemsDir, "def");
+		if (!defBaseDir.exists()) {
+			defBaseDir.mkdirs();
+		}
+
+		File defFile = new File(defBaseDir, "subsystems" + extn);
+		
+		subsystemParser.write(subsystems, defFile);	
+	}
+
+	private void saveSubsystemsRepos(Map<File, Repository> repoMap) throws IOException {
+		if (repoMap.size() != 0){
+			Set<File> keys = repoMap.keySet();
+			for(File key : keys){
+				saveRepository(key, repoMap.get(key));
+			}
+		}		
+	}
+
+	private Map<File, Repository> createUserDefinedRepos(String subsystemsName,
+			List<org.glassfish.obrbuilder.subsystem.Repository> repos) throws IOException {
+		Map<File, Repository> repoMap = new HashMap<File, Repository>();
+		for (org.glassfish.obrbuilder.subsystem.Repository repo : repos) {
+			String repoName = repo.getName();
+			String repoPath = repo.getUri();
+			File repoFile = getSubSystemRepositoryFile(subsystemsName,repoName);
+			Repository repository = createRepository(repoFile,
+					new File(repoPath), false);
+			
+			repoMap.put(repoFile, repository);
+			repositories.add(repository);
+		}
+		
+		return repoMap;
 	}
 
 	private void startSubsystem(List<Module> modules, List<Bundle> bundles) {
@@ -800,18 +889,13 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				list = new ArrayList<Subsystem>();
 				list.add(subsystem);
 			}
+			
+			//creating user-defined obr defined subsystem definition file
+			List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystems
+					.getRepository();
+			Map<File, Repository> repoMap = createUserDefinedRepos(subsystems.getName(), repos);
 
 			for (Subsystem subsystem : list) {
-				List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystem
-						.getRepository();
-				for (org.glassfish.obrbuilder.subsystem.Repository repo : repos) {
-					String repoName = repo.getName();
-					String repoPath = repo.getUri();
-					File repoFile = getSubSystemRepositoryFile(repoName);
-					Repository repository = createRepository(repoFile,
-							new File(repoPath));
-					repositories.add(repository);
-				}
 
 				// Thirdly, we get Modules defined subsystem definition file
 				List<Module> modules = subsystem.getModule();
@@ -854,6 +938,10 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				if (start) {
 					startSubsystem(modules, bundles);
 				}
+				
+				//Save Subsystems repo files and definition file into glassfish-obr-builder's storage
+				saveSubsystemsRepos(repoMap);
+				saveSubsystemsDef(subsystems);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
