@@ -570,24 +570,24 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	}
 
 	@Override
-	public Subsystems deploySubsystems(String subSystemPath) {
+	public Subsystems deploySubsystems(String subSystemPath) throws IOException{
 		return deploySubsystems(subSystemPath, null);
 	}
 
 	@Override
-	public Subsystems deploySubsystems(String subSystemPath, String subSystemName) {
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName) throws IOException{
 		// defaultly, we start subsystem
 		return deploySubsystems(subSystemPath, subSystemName, true);
 	}
 
 	@Override
-	public Subsystems deploySubsystems(String subSystemPath, boolean start) {
+	public Subsystems deploySubsystems(String subSystemPath, boolean start) throws IOException{
 		return deploySubsystems(subSystemPath, null, start);
 	}
 
 	@Override
 	public Subsystems deploySubsystems(String subSystemPath, String subSystemName,
-			boolean start) {
+			boolean start) throws IOException{
 		// Currently, we only support local file system and in the future,
 		// We will support more options, eg. Maven Repo
 		File subSystemFile = new File(subSystemPath);
@@ -604,109 +604,10 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 							+ " is not exist, and please check your subsystems definition file!");
 		}
 		
-		Subsystems subsystems = null;
+        Subsystems subsystems = null;
 		
-		try {
-			subsystems = subsystemParser.read(subSystemFile);
-
-			// Firstly, we reload glassfish system obr called obr-modules.xml
-			// from "com.sun.enterprise.hk2.cacheDir"
-			String systemOBRPath = context.getProperty(Constants.HK2_CACHE_DIR);
-			File systemOBRFile = new File(systemOBRPath,
-					Constants.GF_SYSTEM_OBR_NAME);
-			Repository systemRepo = loadRepository(systemOBRFile);
-			// We add system obr repo into repositories
-			repositories.add(systemRepo);
-
-			// Secondly, we create user-defined obr defined subsystem definition
-			// file and we need to select right subsystem name passed by
-			// parameter
-			List<Subsystem> list = null;
-			if (subSystemName == null) {
-				// get all subsystem from subsystem definition file
-				list = subsystems.getSubsystem();
-			} else {
-				Subsystem subsystem = getSubsystem(subsystems, subSystemName);
-				if (subsystem == null) {
-					logger.logp(
-							Level.SEVERE,
-							"ObrHandlerServiceImpl",
-							"deploySubsystems",
-							"{0} is not exist, and please check your inputted subsystem name!",
-							new Object[] { subSystemName });
-					throw new RuntimeException(
-							subSystemName
-									+ " is not exist, and please check your inputted subsystem name!");
-				}
-
-				list = new ArrayList<Subsystem>();
-				list.add(subsystem);
-			}
-			
-			//creating user-defined obr defined subsystems definition file
-			//Notice: at the point, we should not save repo files into bundle storage area,
-			//and only if deploying the subsystems successfully, we save the repo files
-			List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystems
-					.getRepository();
-			Map<File, Repository> repoMap = createUserDefinedRepos(subsystems.getName(), repos);
-			
-			for (Subsystem subsystem : list) {
-				// Thirdly, we get Modules defined subsystems definition file
-				List<Module> modules = subsystem.getModule();
-				List<Bundle> bundles = new ArrayList<Bundle>();
-				for (Module module : modules) {
-					// fixing
-					// https://github.com/tangyong/glassfish-obr-builder/issues/20
-					// author/date: tangyong/2013.01.30
-					Bundle bundle = deploy(module.getName(),
-							module.getVersion());
-
-					// fixing
-					// https://github.com/tangyong/glassfish-obr-builder/issues/22
-					// author/date: tangyong/2013.01.30
-					if (bundle == null) {
-						// 1) in server.log, output error info
-						// 2) throw exception and breaking subsystems deploy
-						logger.logp(
-								Level.SEVERE,
-								"ObrHandlerServiceImpl",
-								"deploySubsystems",
-								"No module or bundle matching name = {0} and version = {1} ",
-								new Object[] { module.getName(),
-										module.getVersion() });
-						throw new RuntimeException("Subsystem: "
-								+ subsystem.getName() + " deploying failed. "
-								+ "No module or bundle matching name = "
-								+ module.getName() + " and version = "
-								+ module.getVersion());
-					}
-
-					bundles.add(bundle);
-				}
-
-				// if start parameter is set true, we start the subsystem
-				// However, we also need to start modules according to the 
-				// subsystem definition properly,
-				// if the module's start is false, although start parameter is
-				// true, we can not still start the module
-				if (start) {
-					startSubsystem(modules, bundles);
-				}
-				
-				//Save Subsystems repo files and definition file into glassfish-obr-builder's storage
-				saveSubsystemsRepos(repoMap);
-				saveSubsystemsDef(subsystems);
-			}
-		} catch (Exception e) {
-			logger.logp(
-					Level.SEVERE,
-					"ObrHandlerServiceImpl",
-					"deploySubsystems",
-					"Subsystems deployed failed, failed error msg={0}",
-					new Object[] {e.getMessage()});
-			
-			subsystems = null;
-		}
+		subsystems = subsystemParser.read(subSystemFile);
+		deploy(subsystems, subSystemName, start);
 		
 		return subsystems;
 	}
@@ -834,29 +735,35 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	}
 
 	@Override
-	public Subsystems deploySubsystems(InputStream is) {
+	public Subsystems deploySubsystems(InputStream is) throws IOException{
 		return deploySubsystems(is, true);
 	}
 
 	@Override
-	public Subsystems deploySubsystems(InputStream is, boolean start) {
+	public Subsystems deploySubsystems(InputStream is, boolean start) throws IOException{
 		return deploySubsystems(is, null, true);
 	}
 
 	@Override
-	public Subsystems deploySubsystems(InputStream is, String subSystemName) {
+	public Subsystems deploySubsystems(InputStream is, String subSystemName) throws IOException{
 		return deploySubsystems(is, subSystemName, true);
 	}
 
 	@Override
 	public Subsystems deploySubsystems(InputStream is, String subSystemName,
-			boolean start) {
+			boolean start) throws IOException {
 
 		Subsystems subsystems = null;
 		
-		try {
-			subsystems = subsystemParser.read(is);
+		subsystems = subsystemParser.read(is);
+		deploy(subsystems, subSystemName, start);
+		
+		return subsystems;
+	}
 
+	private void deploy(Subsystems subsystems, String subSystemName,
+			boolean start){
+		try {
 			// Firstly, we reload glassfish system obr called obr-modules.xml
 			// from "com.sun.enterprise.hk2.cacheDir"
 			String systemOBRPath = context.getProperty(Constants.HK2_CACHE_DIR);
@@ -952,10 +859,8 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 					"Subsystems deployed failed, failed error msg={0}",
 					new Object[] {e.getMessage()});
 			
-			subsystems = null;
+			throw new RuntimeException(e);
 		}
-		
-		return subsystems;
 	}
 
 	@Override

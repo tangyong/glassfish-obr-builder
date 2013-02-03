@@ -70,21 +70,21 @@ public interface ObrHandlerService {
 	
 	public Bundle deploy(String name, String version);
 	
-	public Subsystems deploySubsystems(String subSystemPath);
+	public Subsystems deploySubsystems(String subSystemPath) throws IOException;
 	
-	public Subsystems deploySubsystems(String subSystemPath, boolean start);
+	public Subsystems deploySubsystems(String subSystemPath, boolean start) throws IOException;
 	
-	public Subsystems deploySubsystems(String subSystemPath, String subSystemName);
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName) throws IOException;
 	
-	public Subsystems deploySubsystems(String subSystemPath, String subSystemName, boolean start);
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName, boolean start) throws IOException;
 	
-    public Subsystems deploySubsystems(InputStream is);
+    public Subsystems deploySubsystems(InputStream is) throws IOException;
 	
-	public Subsystems deploySubsystems(InputStream is, boolean start);
+	public Subsystems deploySubsystems(InputStream is, boolean start) throws IOException;
 	
-	public Subsystems deploySubsystems(InputStream is, String subSystemName);
+	public Subsystems deploySubsystems(InputStream is, String subSystemName) throws IOException;
 	
-	public Subsystems deploySubsystems(InputStream is, String subSystemName, boolean start);
+	public Subsystems deploySubsystems(InputStream is, String subSystemName, boolean start) throws IOException;
 	
 	public List<Subsystems> listSubsystems() throws IOException;
 	
