@@ -43,7 +43,7 @@ Checkout:
 
 Run Build:
     
-    mvn -DskipTests=true clean install
+    mvn clean install
     
 2 glassfish-provisioning-samples building
 
@@ -53,7 +53,7 @@ Checkout:
 
 Run Build:
     
-    mvn -DskipTests=true clean install
+    mvn  clean install
 
 ## GLASSFISH-19395 Testing
 
@@ -169,7 +169,11 @@ None.
 
 3 Refactoring ObrHandlerServiceImpl class to make code more friendly
 
-https://github.com/tangyong/glassfish-obr-builder/issues/28
+* https://github.com/tangyong/glassfish-obr-builder/issues/28
+
+4 Supporting Rest Access from client
+
+* https://github.com/tangyong/glassfish-obr-builder/issues/31
 
 ## To Do List
 
