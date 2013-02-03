@@ -86,7 +86,6 @@ import org.osgi.util.tracker.ServiceTracker;
  */
 class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService {
 
-	private boolean deployOptionalRequirements = false;
 	// We maintain our own repository list which we use during resolution
 	// process.
 	// That way, we are not affected by any repository added by user to a shared
@@ -98,10 +97,6 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	public ObrHandlerServiceImpl(BundleContext bctx) {
 		super(bctx, RepositoryAdmin.class.getName(), null);
 		
-		// Needing to discuss with sahoo
-		// seeing https://github.com/tangyong/glassfish-obr-builder/issues/16
-		deployOptionalRequirements = Boolean.valueOf(bctx
-				.getProperty(Constants.OBR_DEPLOYS_OPTIONAL_REQUIREMENTS));
 		open();
 
 		subsystemParser = new SubsystemXmlReaderWriter();
@@ -426,15 +421,13 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		return files;
 	}
 
-	/* package */
 	@Override
 	public synchronized Bundle deploy(Resource resource) {
 		final Resolver resolver = getRepositoryAdmin().resolver(
 				getRepositories());
 		boolean resolved = resolve(resolver, resource);
 		if (resolved) {
-			final int flags = !deployOptionalRequirements ? Resolver.NO_OPTIONAL_RESOURCES
-					: 0;
+			final int flags = 0;
 			resolver.deploy(flags);
 			return getBundle(resource);
 		} else {
@@ -560,10 +553,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		for (Resource r : requiredResources) {
 			sb.append("\n").append(r.getURI());
 		}
-		String optionalRequirementsDeployed = deployOptionalRequirements ? "deployed"
-				: "not deployed";
-		sb.append("]\nOptional resources (" + optionalRequirementsDeployed
-				+ "): [");
+		
 		for (Resource r : optionalResources) {
 			sb.append("\n").append(r.getURI());
 		}
