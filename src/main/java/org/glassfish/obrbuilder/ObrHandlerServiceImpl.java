@@ -94,8 +94,6 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	private List<Repository> repositories = new ArrayList<Repository>();
 
 	private SubsystemXmlReaderWriter subsystemParser = null;
-	
-	private Subsystems subsystems = null;
 
 	public ObrHandlerServiceImpl(BundleContext bctx) {
 		super(bctx, RepositoryAdmin.class.getName(), null);
@@ -582,23 +580,23 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	}
 
 	@Override
-	public void deploySubsystems(String subSystemPath) {
-		deploySubsystem(subSystemPath, null);
+	public Subsystems deploySubsystems(String subSystemPath) {
+		return deploySubsystems(subSystemPath, null);
 	}
 
 	@Override
-	public void deploySubsystem(String subSystemPath, String subSystemName) {
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName) {
 		// defaultly, we start subsystem
-		deploySubsystem(subSystemPath, subSystemName, true);
+		return deploySubsystems(subSystemPath, subSystemName, true);
 	}
 
 	@Override
-	public void deploySubsystems(String subSystemPath, boolean start) {
-		deploySubsystem(subSystemPath, null, start);
+	public Subsystems deploySubsystems(String subSystemPath, boolean start) {
+		return deploySubsystems(subSystemPath, null, start);
 	}
 
 	@Override
-	public void deploySubsystem(String subSystemPath, String subSystemName,
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName,
 			boolean start) {
 		// Currently, we only support local file system and in the future,
 		// We will support more options, eg. Maven Repo
@@ -608,14 +606,16 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 			logger.logp(
 					Level.SEVERE,
 					"ObrHandlerServiceImpl",
-					"deploySubsystem",
-					"{0} is not exist, and please check your subsystem definition file!",
+					"deploySubsystems",
+					"{0} is not exist, and please check your subsystems definition file!",
 					new Object[] { subSystemPath });
 			throw new RuntimeException(
 					subSystemPath
-							+ " is not exist, and please check your subsystem definition file!");
+							+ " is not exist, and please check your subsystems definition file!");
 		}
-
+		
+		Subsystems subsystems = null;
+		
 		try {
 			subsystems = subsystemParser.read(subSystemFile);
 
@@ -641,7 +641,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 					logger.logp(
 							Level.SEVERE,
 							"ObrHandlerServiceImpl",
-							"deploySubsystem",
+							"deploySubsystems",
 							"{0} is not exist, and please check your inputted subsystem name!",
 							new Object[] { subSystemName });
 					throw new RuntimeException(
@@ -653,7 +653,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				list.add(subsystem);
 			}
 			
-			//creating user-defined obr defined subsystem definition file
+			//creating user-defined obr defined subsystems definition file
 			//Notice: at the point, we should not save repo files into bundle storage area,
 			//and only if deploying the subsystems successfully, we save the repo files
 			List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystems
@@ -661,7 +661,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 			Map<File, Repository> repoMap = createUserDefinedRepos(subsystems.getName(), repos);
 			
 			for (Subsystem subsystem : list) {
-				// Thirdly, we get Modules defined subsystem definition file
+				// Thirdly, we get Modules defined subsystems definition file
 				List<Module> modules = subsystem.getModule();
 				List<Bundle> bundles = new ArrayList<Bundle>();
 				for (Module module : modules) {
@@ -676,11 +676,11 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 					// author/date: tangyong/2013.01.30
 					if (bundle == null) {
 						// 1) in server.log, output error info
-						// 2) throw exception and breaking subsystem deploy
+						// 2) throw exception and breaking subsystems deploy
 						logger.logp(
 								Level.SEVERE,
 								"ObrHandlerServiceImpl",
-								"deploySubsystem",
+								"deploySubsystems",
 								"No module or bundle matching name = {0} and version = {1} ",
 								new Object[] { module.getName(),
 										module.getVersion() });
@@ -695,8 +695,8 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				}
 
 				// if start parameter is set true, we start the subsystem
-				// However, we also need to start modules according to subsystem
-				// definition properly,
+				// However, we also need to start modules according to the 
+				// subsystem definition properly,
 				// if the module's start is false, although start parameter is
 				// true, we can not still start the module
 				if (start) {
@@ -708,9 +708,17 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				saveSubsystemsDef(subsystems);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
+			logger.logp(
+					Level.SEVERE,
+					"ObrHandlerServiceImpl",
+					"deploySubsystems",
+					"Subsystems deployed failed, failed error msg={0}",
+					new Object[] {e.getMessage()});
+			
+			subsystems = null;
 		}
+		
+		return subsystems;
 	}
 
 	private void saveSubsystemsDef(Subsystems subsystems) throws IOException {
@@ -836,24 +844,26 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 	}
 
 	@Override
-	public void deploySubsystems(InputStream is) {
-		deploySubsystems(is, true);
+	public Subsystems deploySubsystems(InputStream is) {
+		return deploySubsystems(is, true);
 	}
 
 	@Override
-	public void deploySubsystems(InputStream is, boolean start) {
-		deploySubsystem(is, null, true);
+	public Subsystems deploySubsystems(InputStream is, boolean start) {
+		return deploySubsystems(is, null, true);
 	}
 
 	@Override
-	public void deploySubsystem(InputStream is, String subSystemName) {
-		deploySubsystem(is, subSystemName, true);
+	public Subsystems deploySubsystems(InputStream is, String subSystemName) {
+		return deploySubsystems(is, subSystemName, true);
 	}
 
 	@Override
-	public void deploySubsystem(InputStream is, String subSystemName,
+	public Subsystems deploySubsystems(InputStream is, String subSystemName,
 			boolean start) {
 
+		Subsystems subsystems = null;
+		
 		try {
 			subsystems = subsystemParser.read(is);
 
@@ -879,7 +889,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 					logger.logp(
 							Level.SEVERE,
 							"ObrHandlerServiceImpl",
-							"deploySubsystem",
+							"deploySubsystems",
 							"{0} is not exist, and please check your inputted subsystem name!",
 							new Object[] { subSystemName });
 					throw new RuntimeException(
@@ -891,14 +901,14 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				list.add(subsystem);
 			}
 			
-			//creating user-defined obr defined subsystem definition file
+			//creating user-defined obr defined subsystems definition file
 			List<org.glassfish.obrbuilder.subsystem.Repository> repos = subsystems
 					.getRepository();
 			Map<File, Repository> repoMap = createUserDefinedRepos(subsystems.getName(), repos);
 
 			for (Subsystem subsystem : list) {
 
-				// Thirdly, we get Modules defined subsystem definition file
+				// Thirdly, we get Modules defined subsystems definition file
 				List<Module> modules = subsystem.getModule();
 				List<Bundle> bundles = new ArrayList<Bundle>();
 				for (Module module : modules) {
@@ -917,7 +927,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 						logger.logp(
 								Level.SEVERE,
 								"ObrHandlerServiceImpl",
-								"deploySubsystem",
+								"deploySubsystems",
 								"No module or bundle matching name = {0} and version = {1} ",
 								new Object[] { module.getName(),
 										module.getVersion() });
@@ -932,7 +942,7 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				}
 
 				// if start parameter is set true, we start the subsystem
-				// However, we also need to start modules according to subsystem
+				// However, we also need to start modules according to subsystems
 				// definition properly,
 				// if the module's start is false, although start parameter is
 				// true, we can not still start the module
@@ -945,24 +955,17 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 				saveSubsystemsDef(subsystems);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException(e.getMessage());
+			logger.logp(
+					Level.SEVERE,
+					"ObrHandlerServiceImpl",
+					"deploySubsystems",
+					"Subsystems deployed failed, failed error msg={0}",
+					new Object[] {e.getMessage()});
+			
+			subsystems = null;
 		}
-	}
-
-	@Override
-	public Subsystems readSubsystem(InputStream is) {
-		try {
-			Subsystems subsystems = subsystemParser.read(is);
-
-			return subsystems;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			throw new RuntimeException(
-					"reading subsystems by inputstream failed!");
-		}
-
+		
+		return subsystems;
 	}
 
 	@Override
@@ -1046,11 +1049,6 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 		}
 		
 		return subsystems;
-	}
-
-	@Override
-	public Subsystems getCurrentSubsystems() {
-		return this.subsystems;
 	}
 	
 	public static BundleContext getBundleContext(Class<?> clazz) {

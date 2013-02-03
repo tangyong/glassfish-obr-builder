@@ -46,6 +46,7 @@ import java.util.List;
 
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resource;
+import org.glassfish.obrbuilder.subsystem.Subsystem;
 import org.glassfish.obrbuilder.subsystem.Subsystems;
 import org.osgi.framework.Bundle;
 
@@ -69,29 +70,23 @@ public interface ObrHandlerService {
 	
 	public Bundle deploy(String name, String version);
 	
-	public void deploySubsystems(String subSystemPath);
+	public Subsystems deploySubsystems(String subSystemPath);
 	
-	public void deploySubsystems(String subSystemPath, boolean start);
+	public Subsystems deploySubsystems(String subSystemPath, boolean start);
 	
-	public void deploySubsystem(String subSystemPath, String subSystemName);
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName);
 	
-	public void deploySubsystem(String subSystemPath, String subSystemName, boolean start);
+	public Subsystems deploySubsystems(String subSystemPath, String subSystemName, boolean start);
 	
-    public void deploySubsystems(InputStream is);
+    public Subsystems deploySubsystems(InputStream is);
 	
-	public void deploySubsystems(InputStream is, boolean start);
+	public Subsystems deploySubsystems(InputStream is, boolean start);
 	
-	public void deploySubsystem(InputStream is, String subSystemName);
+	public Subsystems deploySubsystems(InputStream is, String subSystemName);
 	
-	public void deploySubsystem(InputStream is, String subSystemName, boolean start);
-	
-	public Subsystems getCurrentSubsystems();
+	public Subsystems deploySubsystems(InputStream is, String subSystemName, boolean start);
 	
 	public List<Subsystems> listSubsystems() throws IOException;
 	
 	public Subsystems listSubsystems(String subSystemsName) throws IOException;
-	
-	//Testing API for a wab provisioning client
-	//In the future, the api will be removed
-	public Subsystems readSubsystem(InputStream is);
 }
