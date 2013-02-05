@@ -149,27 +149,27 @@ So, in order to demostrate the  "listsubsystems" REST API, please firstly deploy
 
 then, in browser, clicking "http://localhost:8080/osgi/jersey-http-service/obrhandler/listsubsystems/provisioning-samples" , you will see the following result:
 
-    \<subsystems name="provisioning-samples" description="subsystems provisioning test"\>
+    <subsystems name="provisioning-samples" description="subsystems provisioning test">
     
-      \<repository name="provisioning-sample" uri="D:/provisioning-sample/"/\>
+      <repository name="provisioning-sample" uri="D:/provisioning-sample/"/>
       
-      \<subsystem name="provisioning-sample" description="subsystems provisioning test samples"\>
+      <subsystem name="provisioning-sample" description="subsystems provisioning test samples">
       
-         \<module name="sample.glassfish.provisioning.c_api" version="1.0.0.SNAPSHOT" start="false" description="c api module"/\>
+         <module name="sample.glassfish.provisioning.c_api" version="1.0.0.SNAPSHOT" start="false" description="c api module"/>
          
-         \<module name="sample.glassfish.provisioning.c_impl" start="true" startlevel="3"/\>
+         <module name="sample.glassfish.provisioning.c_impl" start="true" startlevel="3"/>
          
-         \<module name="sample.glassfish.provisioning.a_api" start="false"/\>
+         <module name="sample.glassfish.provisioning.a_api" start="false"/>
          
-         \<module name="sample.glassfish.provisioning.a_impl" start="true" startlevel="1"/\>
+         <module name="sample.glassfish.provisioning.a_impl" start="true" startlevel="1"/>
          
-         \<module name="sample.glassfish.provisioning.b_api" start="false"/\>
+         <module name="sample.glassfish.provisioning.b_api" start="false"/>
          
-         \<module name="sample.glassfish.provisioning.b_impl" start="true" startlevel="2"/\>
+         <module name="sample.glassfish.provisioning.b_impl" start="true" startlevel="2"/>
          
-      \</subsystem\>
+      </subsystem>
       
-   \</subsystems\>
+   </subsystems>
 
 ## New Features
 
