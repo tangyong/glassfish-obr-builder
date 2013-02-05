@@ -82,7 +82,7 @@ Then, re-building web-glue and weld-integration modules, and replacing glassfish
 
 Under glassfish3/glassfish/domains/domain1/osgi-cache/felix, you should see generated obr-modules.xml. Opening the obr xml file, you will see Import-Service and Export-Service related requires and capabilities from web-glue resouce and weld-integration resource.
 
-## Provisioning Subsystem Testing
+## Provisioning Subsystem Testing(Non Rest Access)
 
 The following assumes you use a windows system. (Linux/Unix is similar)
 
@@ -141,6 +141,26 @@ You can also see user-defined obr file called "obr-provisioning-sample.xml" and 
 
 In addition, you can try to switch definition order of c_impl.jar and a_impl.jar in subsystems.xml, and no problem, deployment will be still normal.
 
+## Provisioning Subsystem Testing(Rest Access)
+
+Currently, a "listsubsystems" REST API has been available and other REST API is doing
+
+So, in order to demostrate the  "listsubsystems" REST API, please firstly deploying a subsystem based on "Provisioning Subsystem Testing(Non Rest Access) 's step1Å`step8",
+
+then, in browser, clicking "http://localhost:8080/osgi/jersey-http-service/obrhandler/listsubsystems/provisioning-samples" , you will see the following result:
+
+   <subsystems name="provisioning-samples" description="subsystems provisioning test">
+      <repository name="provisioning-sample" uri="D:/provisioning-sample/"/>
+      <subsystem name="provisioning-sample" description="subsystems provisioning test samples">
+         <module name="sample.glassfish.provisioning.c_api" version="1.0.0.SNAPSHOT" start="false" description="c api module"/>
+         <module name="sample.glassfish.provisioning.c_impl" start="true" startlevel="3"/>
+         <module name="sample.glassfish.provisioning.a_api" start="false"/>
+         <module name="sample.glassfish.provisioning.a_impl" start="true" startlevel="1"/>
+         <module name="sample.glassfish.provisioning.b_api" start="false"/>
+         <module name="sample.glassfish.provisioning.b_impl" start="true" startlevel="2"/>
+      </subsystem>
+   </subsystems>
+
 ## New Features
 
 1 The feature of deploying subsystems can be used
@@ -150,6 +170,8 @@ In addition, you can try to switch definition order of c_impl.jar and a_impl.jar
 3 The feature of listing subsystems can be used
 
 4 Have implemented saving user-defined obr file and subsystem xml file into glassfish-obr-builder bundle storage area
+
+5 "listsubsystems" REST API has been available 
 
 ## Bugs List
 
