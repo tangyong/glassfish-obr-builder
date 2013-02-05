@@ -40,13 +40,21 @@
 
 package org.glassfish.obrbuilder;
 
-import java.io.File;
 import java.net.URI;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.logging.Level;
 
+import javax.servlet.ServletException;
+
+import org.glassfish.jersey.servlet.ServletContainer;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.http.HttpService;
+import org.osgi.service.http.NamespaceException;
+import org.osgi.util.tracker.ServiceTracker;
 
 import static org.glassfish.obrbuilder.Logger.logger;
 
@@ -54,49 +62,149 @@ import static org.glassfish.obrbuilder.Logger.logger;
  * @author TangYong(tangyong@cn.fujitsu.com)
  */
 public class ObrBuilderActivator implements BundleActivator {
-	
+
+	private BundleContext bctx;
 	ServiceRegistration registration = null;
+	private ServiceTracker tracker = null;
+	private HttpService httpService = null;
 
-    public void start(BundleContext context) throws Exception {
-    	String gfRepositoryUris = context.getProperty(Constants.GF_MODULE_REPOSITORIES);
-        
-    	//TangYong Added: Test Scene1
-        //Converting Remote Maven Repo into OBR
-        String mavenRepoUri = "http://repo1.maven.org/maven2/org/apache/servicemix/bundles/org.apache.servicemix.bundles.ant/";
-        
-        //TangYong Added: Test Scene2
-        //Converting Remote Published Felix Obr Repo into OBR Repo
-        String felixRemoteRepoUri = "http://felix.apache.org/obr/releases.xml";
-        
-        //TangYong Added: Test Scene3
-        //Converting Local Existed Maven Repo into OBR Repo
-        String felixLocalRepoUri = "file:/D:/20130125/releases.xml";
-        
-        createGFObrRepository(gfRepositoryUris, context);
-        
-        //Register ObrHandlerServiceFactory into OSGi Registry
-        registration = context.registerService(ObrHandlerService.class.getName(), new ObrHandlerServiceFactory(), null);
-    }
+	public void start(BundleContext context) throws Exception {
+		this.bctx = context;
 
-	public void stop(BundleContext context) throws Exception {  
-		if (registration != null){
+		String gfRepositoryUris = context
+				.getProperty(Constants.GF_MODULE_REPOSITORIES);
+
+		createGFObrRepository(gfRepositoryUris);
+
+		//Register ObrHandlerServiceFactory into OSGi Registry
+		registration = context.registerService(
+				ObrHandlerService.class.getName(),
+				new ObrHandlerServiceFactory(), null);
+
+		//Register Rest Servlets
+		registerRestServlets();
+	}
+
+	private void registerRestServlets() {
+		this.tracker = new ServiceTracker(this.bctx,
+				HttpService.class.getName(), null) {
+			@Override
+			public Object addingService(ServiceReference serviceRef) {
+				httpService = (HttpService) super.addingService(serviceRef);
+				registerServlets();
+				return httpService;
+			}
+
+			@Override
+			public void removedService(ServiceReference ref, Object service) {
+				if (httpService == service) {
+					unregisterServlets();
+					httpService = null;
+				}
+				super.removedService(ref, service);
+			}
+		};
+		
+        this.tracker.open();
+
+        logger.info("HTTP SERVICE BUNDLE STARTED");
+	}
+
+	private void unregisterServlets() {
+		if (this.httpService != null) {
+			logger.info("JERSEY BUNDLE: UNREGISTERING SERVLETS");
+			httpService.unregister("/jersey-http-service");
+			logger.info("JERSEY BUNDLE: SERVLETS UNREGISTERED");
+		}
+	}
+
+	private void registerServlets() {
+		try {
+			rawRegisterServlets();
+		} catch (InterruptedException ie) {
+			throw new RuntimeException(ie);
+		} catch (ServletException se) {
+			throw new RuntimeException(se);
+		} catch (NamespaceException se) {
+			throw new RuntimeException(se);
+		}
+	}
+
+	private void rawRegisterServlets() throws ServletException,
+			NamespaceException, InterruptedException {
+		logger.info("JERSEY BUNDLE: REGISTERING SERVLETS");
+		logger.info("JERSEY BUNDLE: HTTP SERVICE = " + httpService.toString());
+
+		//Please seeing https://github.com/tangyong/glassfish-obr-builder/issues/31
+		//TangYong/2013.2.5
+		ClassLoader oldTCC = Thread.currentThread().getContextClassLoader();   					
+		try{
+			ClassLoader newTCC = new TCCLClassLoader(oldTCC, this.getClass().getClassLoader());
+			Thread.currentThread().setContextClassLoader(newTCC);
+			
+			httpService.registerServlet("/jersey-http-service",
+					new ServletContainer(), getJerseyServletParams(), null);
+		}finally{
+			Thread.currentThread().setContextClassLoader(oldTCC);
+		}		
+
+		logger.info("JERSEY BUNDLE: SERVLETS REGISTERED");
+	}
+	
+	 private static class TCCLClassLoader extends ClassLoader {
+	        private final ClassLoader oldCLS;
+
+	        private final ClassLoader newCLS;
+
+	        public TCCLClassLoader(ClassLoader oldCLS, ClassLoader newCLS) {
+	            this.oldCLS = oldCLS;
+	            this.newCLS = newCLS;
+	        }
+
+	        @Override
+	        public Class<?> loadClass(String name) throws ClassNotFoundException {
+	            Class<?> loadedClass = null;
+	            try {
+	                loadedClass = oldCLS.loadClass(name);
+	            } catch (ClassNotFoundException cnfe) {
+	                loadedClass = newCLS.loadClass(name);
+	            }
+	            return loadedClass;
+	        }
+	    }
+
+	private Dictionary<String, String> getJerseyServletParams() {
+		Dictionary<String, String> jerseyServletParams = new Hashtable<String, String>();
+		jerseyServletParams.put("javax.ws.rs.Application",
+				JerseyApplication.class.getName());
+		return jerseyServletParams;
+	}
+
+	public void stop(BundleContext context) throws Exception {
+		if (registration != null) {
 			registration.unregister();
 		}
-    }
-	
-	private void createGFObrRepository(String repositoryUris, BundleContext bctx) {
+
+		this.tracker.close();
+	}
+
+	private void createGFObrRepository(String repositoryUris) {
 		if (repositoryUris != null) {
-            for (String s : repositoryUris.split("\\s")) {
-                URI repoURI = URI.create(s);
-                ObrHandlerService obrHandler = new ObrHandlerServiceImpl(bctx);
-                try {
-                	obrHandler.addRepository(repoURI);
+			for (String s : repositoryUris.split("\\s")) {
+				URI repoURI = URI.create(s);
+				ObrHandlerService obrHandler = new ObrHandlerServiceImpl(bctx);
+				try {
+					obrHandler.addRepository(repoURI);
 				} catch (Exception e) {
 					e.printStackTrace();
-					logger.logp(Level.SEVERE, "ObrBuilderActivator", "createGFObrRepository", 
-							"Creating Glassfish OBR Repository failed, RepoURI: {0}", new Object[]{repoURI});
+					logger.logp(
+							Level.SEVERE,
+							"ObrBuilderActivator",
+							"createGFObrRepository",
+							"Creating Glassfish OBR Repository failed, RepoURI: {0}",
+							new Object[] { repoURI });
 				}
-            }
-        }
+			}
+		}
 	}
 }

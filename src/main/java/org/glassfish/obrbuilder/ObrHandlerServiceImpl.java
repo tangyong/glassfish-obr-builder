@@ -101,6 +101,14 @@ class ObrHandlerServiceImpl extends ServiceTracker implements ObrHandlerService 
 
 		subsystemParser = new SubsystemXmlReaderWriter();
 	}
+	
+	public ObrHandlerServiceImpl() {
+		super(getBundleContext(ObrHandlerServiceImpl.class), RepositoryAdmin.class.getName(), null);
+		
+		open();
+		
+		subsystemParser = new SubsystemXmlReaderWriter();
+	}
 
 	@Override
 	public Object addingService(ServiceReference reference) {

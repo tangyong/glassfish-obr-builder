@@ -44,49 +44,61 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.felix.bundlerepository.RepositoryAdmin;
 import org.apache.felix.bundlerepository.Resource;
-import org.glassfish.obrbuilder.subsystem.Subsystem;
 import org.glassfish.obrbuilder.subsystem.Subsystems;
 import org.osgi.framework.Bundle;
 
 /**
- * ObrHandlerService is an interface which defines core apis for,
- * 1 creating OBR Repository
- * 2 creating or populating OBR Resource
- * 3 updating OBR Repository
- * 4 removing existed OBR Repository
- * 5 deploying subsystem
+ * ObrHandlerService is an interface which defines core apis for, 1 creating OBR
+ * Repository 2 creating or populating OBR Resource 3 updating OBR Repository 4
+ * removing existed OBR Repository 5 deploying subsystem
  * 
  * @author TangYong(tangyong@cn.fujitsu.com)
  */
+@Path("obrhandler")
 public interface ObrHandlerService {
 
 	public RepositoryAdmin getRepositoryAdmin();
-	
+
 	public void addRepository(URI obrUri) throws Exception;
-	
+
 	public Bundle deploy(Resource resource);
-	
+
 	public Bundle deploy(String name, String version);
-	
+
 	public Subsystems deploySubsystems(String subSystemPath) throws IOException;
-	
-	public Subsystems deploySubsystems(String subSystemPath, boolean start) throws IOException;
-	
-	public Subsystems deploySubsystems(String subSystemPath, String subSystemName) throws IOException;
-	
-	public Subsystems deploySubsystems(String subSystemPath, String subSystemName, boolean start) throws IOException;
-	
-    public Subsystems deploySubsystems(InputStream is) throws IOException;
-	
-	public Subsystems deploySubsystems(InputStream is, boolean start) throws IOException;
-	
-	public Subsystems deploySubsystems(InputStream is, String subSystemName) throws IOException;
-	
-	public Subsystems deploySubsystems(InputStream is, String subSystemName, boolean start) throws IOException;
-	
+
+	public Subsystems deploySubsystems(String subSystemPath, boolean start)
+			throws IOException;
+
+	public Subsystems deploySubsystems(String subSystemPath,
+			String subSystemName) throws IOException;
+
+	public Subsystems deploySubsystems(String subSystemPath,
+			String subSystemName, boolean start) throws IOException;
+
+	public Subsystems deploySubsystems(InputStream is) throws IOException;
+
+	public Subsystems deploySubsystems(InputStream is, boolean start)
+			throws IOException;
+
+	public Subsystems deploySubsystems(InputStream is, String subSystemName)
+			throws IOException;
+
+	public Subsystems deploySubsystems(InputStream is, String subSystemName,
+			boolean start) throws IOException;
+
 	public List<Subsystems> listSubsystems() throws IOException;
-	
-	public Subsystems listSubsystems(String subSystemsName) throws IOException;
+
+	@GET
+	@Path("/listsubsystems/{subSystemsName}")
+	@Produces(MediaType.TEXT_XML)
+	public Subsystems listSubsystems(@PathParam("subSystemsName") String subSystemsName) throws IOException;
 }
